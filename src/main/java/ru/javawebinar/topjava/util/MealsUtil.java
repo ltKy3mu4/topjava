@@ -19,9 +19,10 @@ public class MealsUtil {
                 new Meal(LocalDateTime.of(2015, Month.MAY, 31,13,0), "Обед", 500),
                 new Meal(LocalDateTime.of(2015, Month.MAY, 31,20,0), "Ужин", 510)
         );
+
+
         getFilteredWithExceeded(mealList, LocalTime.of(7, 0), LocalTime.of(12,0), 2000);
-//        .toLocalDate();
-//        .toLocalTime();
+
     }
 
     public static List<MealWithExceed>  getFilteredWithExceeded(List<Meal> mealList, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
