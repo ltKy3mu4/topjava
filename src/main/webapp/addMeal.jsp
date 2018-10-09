@@ -5,6 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Title</title>
 </head>
+
 <body>
     <form method="POST" action='meals' name="frmAddUser">
         <table border="0">

@@ -3,7 +3,7 @@ package ru.javawebinar.topjava.web;
 import ru.javawebinar.topjava.dao.DaoInterface;
 import ru.javawebinar.topjava.dao.HardCodedMealDao;
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.util.HardCodedData;
+import ru.javawebinar.topjava.model.MealWithExceed;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -11,50 +11,55 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MealServlet extends HttpServlet {
     private DaoInterface dao;
     private static String MEALS_TABLE = "/meals.jsp";
     private static String INSERT_OR_EDIT = "/addMeal.jsp";
     private static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-//    private DateTimeFormatter dateTimeFormatter = new DateTimeFormatter();
 
-    public MealServlet() {
-        super();
-        //TODO: where should i set the implementation of DAO?
+    @Override
+    public void init() throws ServletException {
+        super.init();
         dao = new HardCodedMealDao();
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-//        super.doGet(req, resp);
-        String forward = "";
         String action = req.getParameter("action");
         if (action == null) {
             action = "mealList";
         }
-        if (action.equalsIgnoreCase("delete")) {
-            forward = MEALS_TABLE;
-            String userId = req.getParameter("id");
-            dao.deleteMeal(userId);
-            req.setAttribute("mealList", dao.getAllMealsWithExceed());
-        } else if (action.equalsIgnoreCase("edit")) {
-            forward = INSERT_OR_EDIT;
-            String userId = req.getParameter("id");
-            Meal meal = dao.findMealById(userId);
-            req.setAttribute("meal", meal);
-        } else if (action.equalsIgnoreCase("mealList")) {
-            forward = MEALS_TABLE;
-            req.setAttribute("mealList", dao.getAllMealsWithExceed());
-        } else {
-            forward = INSERT_OR_EDIT;
+        switch (action){
+            case ("delete"): {
+                Integer userId = Integer.parseInt(req.getParameter("id"));
+                dao.deleteMeal(userId);
+                resp.sendRedirect(req.getContextPath()+"/meals");
+                break;
+            }
+            case ("edit"): {
+                Integer userId = Integer.parseInt(req.getParameter("id"));
+                req.setAttribute("meal", dao.getAllMeals().get(userId));
+                req.getRequestDispatcher(INSERT_OR_EDIT).forward(req, resp);
+                break;
+            }
+            case ("mealList"): {
+                req.setAttribute("mealList", getAllMealsWithExceed());
+                req.getRequestDispatcher(MEALS_TABLE).forward(req, resp);
+                break;
+            }
+            default: {
+                req.getRequestDispatcher(INSERT_OR_EDIT).forward(req, resp);
+            }
         }
-//        req.setAttribute("mealList", HardCodedData.getMealData());
-        req.getRequestDispatcher(forward).forward(req, resp);
     }
 
     @Override
@@ -82,17 +87,49 @@ public class MealServlet extends HttpServlet {
         } catch (ClassCastException ex) {
             ex.printStackTrace();
         }
+        Integer mealId;
+        String id = req.getParameter("id");
+        if (id.equals("")  || id.isEmpty()){
+            mealId=0;
+        }
+        else {
+            mealId = Integer.parseInt(req.getParameter("id"));
+        }
 
-        String mealId = req.getParameter("id");
-
-        if (mealId == null || mealId.isEmpty()) {
-            dao.addMeal(new Meal(localDateTime, desc, calories));
+        if (mealId == 0) {
+            dao.addMeal(new Meal(dao.getNextId(),localDateTime, desc, calories));
         } else {
-            dao.updateMeal(new Meal(localDateTime, desc, calories, mealId));
+            dao.updateMeal(new Meal(mealId,localDateTime, desc, calories));
         }
 
         RequestDispatcher view = req.getRequestDispatcher(MEALS_TABLE);
-        req.setAttribute("mealList", dao.getAllMealsWithExceed());
+        req.setAttribute("mealList", getAllMealsWithExceed());
         view.forward(req, resp);
     }
+
+    private List<MealWithExceed> getAllMealsWithExceed(){
+        Map<Integer, Meal> allMeals = dao.getAllMeals();
+        Map<LocalDate, Integer> caloriesPerDay = new HashMap<>();
+
+        for (Map.Entry<Integer,Meal> entry: allMeals.entrySet()){
+             Meal meal = entry.getValue();
+             if (caloriesPerDay.containsKey(meal.getDateTime().toLocalDate())){
+                 Integer newCalories = caloriesPerDay.get(meal.getDateTime().toLocalDate())+meal.getCalories();
+                 caloriesPerDay.put(meal.getDateTime().toLocalDate(),newCalories);
+             }
+             else {
+                 caloriesPerDay.put(meal.getDateTime().toLocalDate(),meal.getCalories());
+             }
+        }
+
+        List< MealWithExceed> allMealsWithExceeded = new ArrayList<>();
+        for (Map.Entry<Integer,Meal> entry: allMeals.entrySet()){
+            Meal meal = entry.getValue();
+            allMealsWithExceeded.add(
+                    new MealWithExceed(meal.getId(),meal.getDateTime(),meal.getDescription(),meal.getCalories(),
+                            caloriesPerDay.get(meal.getDateTime().toLocalDate()) > 2000));
+        }
+        return  allMealsWithExceeded;
+    }
+
 }

@@ -1,66 +1,50 @@
 package ru.javawebinar.topjava.dao;
 
 import ru.javawebinar.topjava.model.Meal;
-import ru.javawebinar.topjava.model.MealWithExceed;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class HardCodedMealDao implements DaoInterface {
-    private List<Meal> mealList;
+    private AtomicInteger idCounter = new AtomicInteger(0);
+
+    private Map<Integer, Meal> mealMap;
 
     public HardCodedMealDao() {
-        mealList = new CopyOnWriteArrayList<>();
-        mealList.add(new Meal(LocalDateTime.of(2015, Month.MAY, 30, 10, 0), "Завтрак", 500));
-        mealList.add(new Meal(LocalDateTime.of(2015, Month.MAY, 30, 13, 0), "Обед", 1000));
-        mealList.add(new Meal(LocalDateTime.of(2015, Month.MAY, 30, 20, 0), "Ужин", 500));
-        mealList.add(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 10, 0), "Завтрак", 1000));
-        mealList.add(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 13, 0), "Обед", 500));
-        mealList.add(new Meal(LocalDateTime.of(2015, Month.MAY, 31, 20, 0), "Ужин", 510));
+        mealMap = new ConcurrentHashMap<>();
+        mealMap.put(idCounter.incrementAndGet(), new Meal(idCounter.get(),LocalDateTime.of(2015, Month.MAY, 30, 10, 0), "Завтрак", 500));
+        mealMap.put(idCounter.incrementAndGet(), new Meal(idCounter.get(),LocalDateTime.of(2015, Month.MAY, 30, 13, 0), "Обед", 1000));
+        mealMap.put(idCounter.incrementAndGet(), new Meal(idCounter.get(),LocalDateTime.of(2015, Month.MAY, 30, 20, 0), "Ужин", 500));
+        mealMap.put(idCounter.incrementAndGet(), new Meal(idCounter.get(),LocalDateTime.of(2015, Month.MAY, 31, 10, 0), "Завтрак", 1000));
+        mealMap.put(idCounter.incrementAndGet(), new Meal(idCounter.get(),LocalDateTime.of(2015, Month.MAY, 31, 13, 0), "Обед", 500));
+        mealMap.put(idCounter.incrementAndGet(), new Meal(idCounter.get(),LocalDateTime.of(2015, Month.MAY, 31, 20, 0), "Ужин", 510));
     }
 
     @Override
     public void addMeal(Meal meal) {
-        getMealData().add(meal);
+        mealMap.put(meal.getId(), meal);
     }
 
     @Override
-    public void deleteMeal(String mealId) {
-        Meal removedMeal = findMealById(mealId);
-        getMealData().remove(removedMeal);
+    public void deleteMeal(Integer mealId) {
+        mealMap.remove(mealId);
     }
 
     @Override
     public void updateMeal(Meal meal) {
-        getMealData().remove(findMealById(meal.getId()));
-        getMealData().add(meal);
+        mealMap.remove(meal.getId());
+        mealMap.put(meal.getId(), meal);
     }
 
     @Override
-    public List<MealWithExceed> getAllMealsWithExceed() {
-        Map<LocalDate, Integer> caloriesSumByDate = getMealData().stream().collect(
-                Collectors.groupingBy(meal -> meal.getDateTime().toLocalDate(), Collectors.summingInt(Meal::getCalories)));
-        List<MealWithExceed> mealWithExceedList = getMealData().stream()
-                .map(meal -> new MealWithExceed(meal.getDateTime(), meal.getDescription(), meal.getCalories(), meal.getId(), caloriesSumByDate.get(meal.getDateTime().toLocalDate()) > 2000))
-                .collect(Collectors.toList());
-
-        return mealWithExceedList.stream().sorted((o1, o2) -> o1.getLocalDateTime().isBefore(o2.getLocalDateTime()) ? -1 : 1).collect(Collectors.toList());
+    public Map<Integer, Meal> getAllMeals() {
+        return mealMap;
     }
 
     @Override
-    public Meal findMealById(String id) {
-        List<Meal> mealData = getMealData();
-        Meal searchingMeal = getMealData().stream().filter(meal -> meal.getId().equals(id)).findFirst().get();
-        return searchingMeal;
+    public Integer getNextId() {
+        return idCounter.incrementAndGet();
     }
-
-
-    public List<Meal> getMealData() {
-        return mealList;
-    }
-
-
 }
