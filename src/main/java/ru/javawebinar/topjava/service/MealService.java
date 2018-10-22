@@ -18,5 +18,5 @@ public interface MealService {
 
     List<MealWithExceed> getAllWithExceeded(int loggedinUserId);
 
-    List<Meal> getAll (int loggedinUserId);
+
 }

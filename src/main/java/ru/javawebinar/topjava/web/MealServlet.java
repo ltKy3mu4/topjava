@@ -2,6 +2,7 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import ru.javawebinar.topjava.model.Meal;
@@ -29,8 +30,12 @@ public class MealServlet extends HttpServlet {
     @Override
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
-        try (ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml")) {
+        appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml");
+        try  {
             mealRestController = appCtx.getBean(MealRestController.class);
+        }
+        catch (BeansException be){
+            be.printStackTrace();
         }
 
     }
@@ -44,7 +49,7 @@ public class MealServlet extends HttpServlet {
                 LocalDateTime.parse(request.getParameter("dateTime")),
                 request.getParameter("description"),
                 Integer.parseInt(request.getParameter("calories")),
-                SecurityUtil.authUserId());
+                null);
 
         log.info(meal.isNew() ? "Create {}" : "Update {}", meal);
         mealRestController.create(meal);
@@ -94,10 +99,7 @@ public class MealServlet extends HttpServlet {
 
     @Override
     public void destroy() {
-        //TODO: here i tried to implement the spring context closing, but i realise that it's wrong
-        try (ConfigurableApplicationContext appCtx = new ClassPathXmlApplicationContext("spring/spring-app.xml")) {
-            appCtx.close();
-        }
+        appCtx.close();
         super.destroy();
     }
 }

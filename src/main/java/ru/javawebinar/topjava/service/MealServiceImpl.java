@@ -12,7 +12,6 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 import ru.javawebinar.topjava.web.SecurityUtil;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 @Service
 public class MealServiceImpl implements MealService {
@@ -31,18 +30,16 @@ public class MealServiceImpl implements MealService {
     @Override
     public void delete(int mealId, int userId) throws NotFoundException {
         Meal deletedMeal = repository.get(mealId);
-        if (deletedMeal == null){
+        if (deletedMeal == null) {
             LOG.warn("the required element for deleting was not found");
-            throw new NotFoundException("element "+mealId+" was not found");
-        }
-        else {
-            if (deletedMeal.getUserId().equals(userId)){
+            throw new NotFoundException("element " + mealId + " was not found");
+        } else {
+            if (deletedMeal.getUserId().equals(userId)) {
                 repository.delete(mealId);
-                LOG.info("The element "+mealId+" was successfully deleted" );
-            }
-            else{
-                LOG.warn("The user "+SecurityUtil.authUserId()+"  doesn't have permission to delete the element "+mealId);
-                throw new NotFoundException("element "+mealId+" cannot be deleted by this user");
+                LOG.info("The element " + mealId + " was successfully deleted");
+            } else {
+                LOG.warn("The user " + SecurityUtil.authUserId() + "  doesn't have permission to delete the element " + mealId);
+                throw new NotFoundException("element " + mealId + " cannot be deleted by this user");
             }
         }
     }
@@ -50,17 +47,15 @@ public class MealServiceImpl implements MealService {
     @Override
     public Meal get(int mealId, int loggedinUserId) throws NotFoundException {
         Meal chosenMeal = repository.get(mealId);
-        if (chosenMeal == null){
+        if (chosenMeal == null) {
             LOG.warn("the required element for deleting was not found");
-            throw new NotFoundException("element "+mealId+" was not found");
-        }
-        else {
-            if (chosenMeal.getUserId().equals(loggedinUserId)){
-                LOG.info("The element "+mealId+" was chosen" );
+            throw new NotFoundException("element " + mealId + " was not found");
+        } else {
+            if (chosenMeal.getUserId().equals(loggedinUserId)) {
+                LOG.info("The element " + mealId + " was chosen");
                 return repository.get(mealId);
-            }
-            else{
-                LOG.warn("The user with id #"+loggedinUserId+" doesn't have permission to get the element "+mealId);
+            } else {
+                LOG.warn("The user with id #" + loggedinUserId + " doesn't have permission to get the element " + mealId);
                 return null;
             }
         }
@@ -69,16 +64,14 @@ public class MealServiceImpl implements MealService {
     @Override
     public void update(Meal meal, int mealId, int loggedinUserId) {
         Meal updatedMeal = repository.get(mealId);
-        if (updatedMeal == null){
+        if (updatedMeal == null) {
             create(meal, loggedinUserId);
-        }
-        else {
-            if (updatedMeal.getUserId().equals(loggedinUserId)){
+        } else {
+            if (updatedMeal.getUserId().equals(loggedinUserId)) {
                 repository.delete(meal.getId());
-                repository.save(new Meal(updatedMeal.getId(),updatedMeal.getDateTime(),updatedMeal.getDescription(),updatedMeal.getCalories(),updatedMeal.getUserId()));
-            }
-            else{
-                LOG.warn("The user "+SecurityUtil.authUserId()+"  doesn't have permission to modify the element "+meal.getId());
+                repository.save(new Meal(updatedMeal.getId(), updatedMeal.getDateTime(), updatedMeal.getDescription(), updatedMeal.getCalories(), updatedMeal.getUserId()));
+            } else {
+                LOG.warn("The user " + SecurityUtil.authUserId() + "  doesn't have permission to modify the element " + meal.getId());
             }
         }
 
@@ -86,13 +79,10 @@ public class MealServiceImpl implements MealService {
 
     @Override
     public List<MealWithExceed> getAllWithExceeded(int loggedinUserId) {
-        return MealsUtil.getWithExceeded(repository.getAll(loggedinUserId),MealsUtil.DEFAULT_CALORIES_PER_DAY);
+        return MealsUtil.getWithExceeded(repository.getAll(loggedinUserId), MealsUtil.DEFAULT_CALORIES_PER_DAY);
     }
 
-    @Override
-    public List<Meal> getAll(int loggedinUserId) {
-        return repository.getAll(loggedinUserId);
-    }
+
 
 
 }
