@@ -20,8 +20,8 @@ public class UserTestData {
     }
 
     public static void assertMatch(Iterable<User> actual, User... expected) {
-        assertMatch(actual, Arrays.asList(expected));
-    }
+    assertMatch(actual, Arrays.asList(expected));
+}
 
     public static void assertMatch(Iterable<User> actual, Iterable<User> expected) {
         assertThat(actual).usingElementComparatorIgnoringFields("registered", "roles").isEqualTo(expected);
