@@ -1,8 +1,6 @@
 package ru.javawebinar.topjava.service;
 
-import org.junit.Assert;
-import org.junit.ClassRule;
-import org.junit.Rule;
+import org.junit.*;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.Stopwatch;
@@ -27,6 +25,9 @@ import static ru.javawebinar.topjava.util.ValidationUtil.getRootCause;
 @ActiveProfiles(resolver = ActiveDbProfileResolver.class)
 @Sql(scripts = "classpath:db/populateDB.sql", config = @SqlConfig(encoding = "UTF-8"))
 abstract public class AbstractServiceTest {
+
+
+
     @ClassRule
     public static ExternalResource summary = TimingRules.SUMMARY;
 
