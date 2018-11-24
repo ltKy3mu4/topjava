@@ -61,6 +61,14 @@ public class Meal extends AbstractBaseEntity {
         this.calories = calories;
     }
 
+    public Meal (Meal forCopy){
+        this.id=forCopy.getId();
+        this.dateTime = forCopy.getDateTime();
+        this.description = forCopy.getDescription();
+        this.calories = forCopy.getCalories();
+        this.user = forCopy.getUser();
+    }
+
     public LocalDateTime getDateTime() {
         return dateTime;
     }
