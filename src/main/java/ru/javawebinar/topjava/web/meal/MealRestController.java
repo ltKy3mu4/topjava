@@ -8,6 +8,8 @@ import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.to.MealTo;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import ru.javawebinar.topjava.util.DateFormatter;
+import ru.javawebinar.topjava.util.Filter;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -54,10 +56,13 @@ public class MealRestController extends AbstractMealController {
 
     @GetMapping(value = "/filter/{start}/{end}", produces = MediaType.APPLICATION_JSON_VALUE)
     public  List<MealTo> getFilteredMeals(
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
-            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end ){
-        List<MealTo> between = super.getBetween(start.toLocalDate(), start.toLocalTime(), end.toLocalDate(), end.toLocalTime());
-        return super.getBetween(start.toLocalDate(),start.toLocalTime(),end.toLocalDate(),end.toLocalTime());
+//            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime start,
+//            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime end ){
+            @PathVariable String start, @PathVariable String end){
+        DateFormatter dateFormatter = new DateFormatter();
+        LocalDateTime startDateTime = dateFormatter.parseFromIso(start, Filter.StartPoint);
+        LocalDateTime endDateTime = dateFormatter.parseFromIso(end, Filter.EndPoint);
+        return super.getBetween(startDateTime.toLocalDate(),startDateTime.toLocalTime(),endDateTime.toLocalDate(),endDateTime.toLocalTime());
     }
 
 
